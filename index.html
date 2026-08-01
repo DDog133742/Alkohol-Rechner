@@ -78,6 +78,8 @@
   label{ display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px; }
   input, select{
     width:100%;
+    height: 46px;
+    line-height: 1.2;
     background: #0C1613;
     border: 1px solid var(--line);
     color: var(--ink);
@@ -85,9 +87,17 @@
     padding: 10px 11px;
     font-family:'JetBrains Mono', monospace;
     font-size: 14px;
+    -webkit-appearance: none;
+    appearance: none;
   }
   input:focus, select:focus{ outline: none; border-color: var(--accent-dim); }
-  .field{ margin-bottom: 4px; }
+  select{
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237E9992' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 11px center;
+    padding-right: 32px;
+  }
+  .field{ margin-bottom: 4px; min-width: 0; }
 
   .slider-row{ display:flex; align-items:center; gap:10px; }
   input[type=range]{ accent-color: var(--accent); padding:0; height:24px; }
@@ -105,9 +115,12 @@
   }
   .toggle-btn:hover:not(.active){ border-color: var(--accent-dim); color: var(--ink); }
 
-  /* Drink entry row */
-  .drink-form{ display:grid; grid-template-columns: 1.3fr 0.9fr 0.8fr 0.9fr auto; gap:10px; align-items:end; }
-  @media (max-width:700px){ .drink-form{ grid-template-columns: 1fr 1fr; } }
+  /* Drink entry: Zeile 1 = Getränk (breit) + Menge (schmal); Zeile 2 = Vol.-% / Datum / Uhrzeit; Button volle Breite */
+  .drink-form{ display:flex; flex-direction:column; gap:14px; }
+  .row-2{ display:grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr); gap:10px; align-items:end; }
+  .row-3{ display:grid; grid-template-columns: minmax(0,0.65fr) minmax(0,1.05fr) minmax(0,1.05fr); gap:8px; align-items:end; }
+  #date, #time{ font-size: 13px; padding: 10px 6px; }
+  .drink-form > button{ width:100%; }
 
   button{
     font-family:'Space Grotesk', sans-serif;
@@ -186,14 +199,14 @@
       </div>
       <div class="field">
         <label for="weight">Körpergewicht (kg)</label>
-        <input type="number" id="weight" value="75" min="30" max="250" step="1">
+        <input type="number" id="weight" value="80" min="30" max="250" step="1">
       </div>
     </div>
     <div class="field" style="margin-top:10px;">
       <label>Essenszustand (beeinflusst, wie schnell der Alkohol anflutet)</label>
       <div class="toggle-group" id="mealToggle">
-        <button type="button" class="toggle-btn active" data-key="empty">Nüchtern</button>
-        <button type="button" class="toggle-btn" data-key="meal">Mit Mahlzeit</button>
+        <button type="button" class="toggle-btn" data-key="empty">Nüchtern</button>
+        <button type="button" class="toggle-btn active" data-key="meal">Mit Mahlzeit</button>
       </div>
     </div>
     <div class="field" style="margin-top:10px;">
@@ -208,29 +221,42 @@
   <div class="panel">
     <h2>Getränke</h2>
     <div class="drink-form">
-      <div class="field">
-        <label for="preset">Getränk</label>
-        <select id="preset">
-          <option value="custom">Benutzerdefiniert</option>
-          <option value="beer" data-vol="500" data-abv="5">Bier, 0,5 l (5%)</option>
-          <option value="beer03" data-vol="330" data-abv="4.8">Bier, 0,33 l (4,8%)</option>
-          <option value="wine" data-vol="200" data-abv="12" selected>Wein, 0,2 l (12%)</option>
-          <option value="sparkling" data-vol="100" data-abv="11">Sekt, 0,1 l (11%)</option>
-          <option value="shot" data-vol="40" data-abv="40">Schnaps, 4 cl (40%)</option>
-          <option value="longdrink" data-vol="300" data-abv="8">Longdrink, 0,3 l (~8%)</option>
-        </select>
+      <div class="row-2">
+        <div class="field">
+          <label for="preset">Getränk</label>
+          <select id="preset">
+            <option value="roseschorle_klein" data-vol="500" data-abv="4.7" selected>Roséschorle klein, 0,5 l (⅓ Wein)</option>
+            <option value="roseschorle" data-vol="500" data-abv="7">Roséschorle, 0,5 l (½ Wein)</option>
+            <option value="wine" data-vol="200" data-abv="14">Wein, 0,2 l (14%)</option>
+            <option value="wine_klein" data-vol="100" data-abv="14">Wein, 0,1 l (14%)</option>
+            <option value="aperol" data-vol="500" data-abv="9">Aperol Spritz, stark, 0,5 l (~9%)</option>
+            <option value="radler" data-vol="500" data-abv="2.5">Radler (alkoholhaltig), 0,5 l (2,5%)</option>
+            <option value="radler03" data-vol="333" data-abv="2.5">Radler (alkoholhaltig), 0,33 l (2,5%)</option>
+            <option value="beer" data-vol="500" data-abv="6">Bier, 0,5 l (6%)</option>
+            <option value="beer03" data-vol="333" data-abv="6">Bier, 0,33 l (6%)</option>
+            <option value="shot" data-vol="10" data-abv="40">Schnaps, 1 cl (40%)</option>
+            <option value="likoer" data-vol="40" data-abv="14">Likör, 4 cl (14%)</option>
+            <option value="custom">Benutzerdefiniert</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="vol">Menge (ml)</label>
+          <input type="number" id="vol" value="500" min="1" max="2000">
+        </div>
       </div>
-      <div class="field">
-        <label for="vol">Menge (ml)</label>
-        <input type="number" id="vol" value="200" min="1" max="2000">
-      </div>
-      <div class="field">
-        <label for="abv">Vol.-%</label>
-        <input type="number" id="abv" value="12" min="0.1" max="80" step="0.1">
-      </div>
-      <div class="field">
-        <label for="time">Uhrzeit</label>
-        <input type="datetime-local" id="time">
+      <div class="row-3">
+        <div class="field">
+          <label for="abv">Vol.-%</label>
+          <input type="number" id="abv" value="4.7" min="0.1" max="80" step="0.1">
+        </div>
+        <div class="field">
+          <label for="date">Datum</label>
+          <input type="text" id="date" inputmode="numeric" placeholder="TT.MM.JJJJ" maxlength="10">
+        </div>
+        <div class="field">
+          <label for="time">Uhrzeit</label>
+          <input type="time" id="time">
+        </div>
       </div>
       <button class="btn-accent" id="addDrink">+ Hinzufügen</button>
     </div>
@@ -288,14 +314,14 @@ const MEAL_SETTINGS = {
   meal:  { absorptionMinutes: 90, peakFactor: 0.7 }
 };
 let drinks = []; // {id, time: Date, vol, abv, label}
-let weightByType = { male: 75, female: 75 };
-let mealKey = 'empty';
+let weightByType = { male: 80, female: 60 };
+let mealKey = 'meal';
 let chart;
 
 const $ = (id) => document.getElementById(id);
 
-// default time = now
-$('time').value = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+// default date/time = now
+setTimeToNow();
 
 function saveState(){
   try{
@@ -327,7 +353,7 @@ function loadState(){
     }
     if(state.sexKey){ setSex(state.sexKey, false); }
     else { setSex(currentSexKey(), false); }
-    setMeal(state.mealKey || 'empty', false);
+    setMeal(state.mealKey || 'meal', false);
     if(Array.isArray(state.drinks)){
       drinks = state.drinks.map(d => ({ ...d, time: new Date(d.time) }));
       drinks.sort((a,b) => a.time - b.time);
@@ -384,15 +410,45 @@ $('weight').addEventListener('change', () => {
   saveState();
 });
 
+function parseDateDE(str){
+  const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec((str||'').trim());
+  if(!m) return null;
+  const [, dd, mm, yyyy] = m;
+  const iso = `${yyyy}-${mm}-${dd}`;
+  const d = new Date(`${iso}T00:00`);
+  if(isNaN(d) || d.getDate() !== parseInt(dd,10) || (d.getMonth()+1) !== parseInt(mm,10)) return null;
+  return iso;
+}
+
+function formatDateDE(date){
+  const dd = String(date.getDate()).padStart(2,'0');
+  const mm = String(date.getMonth()+1).padStart(2,'0');
+  const yyyy = date.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
+}
+
+// Auto-Punkte beim Tippen einfügen (TT.MM.JJJJ)
+$('date').addEventListener('input', (e) => {
+  let digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+  let out = digits.slice(0,2);
+  if(digits.length > 2) out += '.' + digits.slice(2,4);
+  if(digits.length > 4) out += '.' + digits.slice(4,8);
+  e.target.value = out;
+});
+
 $('addDrink').addEventListener('click', () => {
   const vol = parseFloat($('vol').value);
   const abv = parseFloat($('abv').value);
   const timeVal = $('time').value;
-  if(!vol || !abv || !timeVal) return;
+  const dateIso = parseDateDE($('date').value);
+  if(!vol || !abv || !timeVal || !dateIso){
+    if($('date').value && !dateIso){ $('date').focus(); }
+    return;
+  }
   const label = $('preset').value === 'custom' ? `${vol} ml, ${abv}%` : $('preset').selectedOptions[0].text;
   drinks.push({
     id: Date.now() + Math.random(),
-    time: new Date(timeVal),
+    time: new Date(`${dateIso}T${timeVal}`),
     vol, abv, label
   });
   drinks.sort((a,b) => a.time - b.time);
@@ -403,7 +459,10 @@ $('addDrink').addEventListener('click', () => {
 });
 
 function setTimeToNow(){
-  $('time').value = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+  const now = new Date();
+  $('date').value = formatDateDE(now);
+  const iso = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString();
+  $('time').value = iso.slice(11,16);
 }
 
 function gramsAlcohol(vol, abv){
