@@ -623,12 +623,7 @@ function updateChart(points, now, soberTime){
   }
   const ctx = canvas.getContext('2d');
 
-  const labels = points.map(p => {
-    const d = p.x;
-    const hh = String(d.getHours()).padStart(2,'0');
-    const mm = String(d.getMinutes()).padStart(2,'0');
-    return `${hh}:${mm}`;
-  });
+  const labels = points.map(p => String(p.x.getHours()));
   const values = points.map(p => p.y);
 
   let nowIdx = -1;
@@ -667,6 +662,7 @@ function updateChart(points, now, soberTime){
         x: {
           grid: { color: '#21332C' },
           ticks: { color: '#7E9992', font: { family: 'JetBrains Mono', size: 11 }, autoSkip: true, maxTicksLimit: 9, maxRotation: 0 },
+          title: { display: true, text: 'Uhrzeit', color: '#7E9992' },
         },
         y: {
           min: 0,
@@ -684,6 +680,11 @@ function updateChart(points, now, soberTime){
           titleColor: '#E7F1EC',
           bodyColor: '#45E0A0',
           callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              const d = points[idx].x;
+              return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            },
             label: (c) => ` ${c.parsed.y.toFixed(2).replace('.',',')} ‰`
           }
         },
