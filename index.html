@@ -294,6 +294,16 @@
       </div>
     </div>
     <div class="status-line" id="statusLine">Trage oben mindestens ein Getränk ein, um eine Schätzung zu erhalten.</div>
+    <div class="readout" id="hangoverReadout" style="display:none; grid-template-columns: 1fr 1fr; margin-top:14px;">
+      <div class="stat" id="statHangoverStart">
+        <div class="k">Hangover-Beginn (grober Richtwert)</div>
+        <div class="v" id="valHangoverStart" style="color:var(--amber);">–</div>
+      </div>
+      <div class="stat" id="statHangoverEnd">
+        <div class="k">Hangover-Ende (grober Richtwert)</div>
+        <div class="v" id="valHangoverEnd" style="color:var(--amber);">–</div>
+      </div>
+    </div>
   </div>
 
   <div class="panel">
@@ -307,7 +317,7 @@
   </div>
 
   <div class="disclaimer">
-    <b>Wichtiger Hinweis:</b> Diese Rechnung basiert auf der vereinfachten Widmark-Formel und liefert nur eine grobe Schätzung. Tatsächliche Werte hängen stark von individuellen Faktoren ab (Stoffwechsel, Medikamente, Nahrungsaufnahme, Gesundheitszustand, Trinkgeschwindigkeit u.v.m.) und können erheblich abweichen. Für Fahrer unter 21 bzw. in der Probezeit gilt in Deutschland ein absolutes Alkoholverbot (0,0 ‰). Nutze dieses Tool nicht als Grundlage für die Entscheidung, ob du noch fahren darfst — im Zweifel: nicht fahren. Kein Ersatz für eine medizinische Einschätzung oder eine Atemalkohol-/Blutmessung.
+    <b>Wichtiger Hinweis:</b> Diese Rechnung basiert auf der vereinfachten Widmark-Formel und liefert nur eine grobe Schätzung. Tatsächliche Werte hängen stark von individuellen Faktoren ab (Stoffwechsel, Medikamente, Nahrungsaufnahme, Gesundheitszustand, Trinkgeschwindigkeit u.v.m.) und können erheblich abweichen. Für Fahrer unter 21 bzw. in der Probezeit gilt in Deutschland ein absolutes Alkoholverbot (0,0 ‰). Nutze dieses Tool nicht als Grundlage für die Entscheidung, ob du noch fahren darfst — im Zweifel: nicht fahren. Kein Ersatz für eine medizinische Einschätzung oder eine Atemalkohol-/Blutmessung. Die Hangover-Zeitpunkte sind ein noch gröberer Richtwert als die BAK-Kurve selbst — anders als beim Promillewert gibt es dafür keine allgemein anerkannte Formel; Dauer und Intensität schwanken stark von Person zu Person und mit der Trinkmenge.
   </div>
 
 </div>
@@ -451,7 +461,11 @@ $('addDrink').addEventListener('click', () => {
     if($('date').value && !dateIso){ $('date').focus(); }
     return;
   }
-  const label = $('preset').value === 'custom' ? `${vol} ml, ${abv}%` : $('preset').selectedOptions[0].text;
+  const selectedOpt = $('preset').selectedOptions[0];
+  const presetVol = parseFloat(selectedOpt.dataset.vol);
+  const presetAbv = parseFloat(selectedOpt.dataset.abv);
+  const matchesPreset = $('preset').value !== 'custom' && vol === presetVol && abv === presetAbv;
+  const label = matchesPreset ? selectedOpt.text : `${vol} ml, ${abv}%`;
   drinks.push({
     id: Date.now() + Math.random(),
     time: new Date(`${dateIso}T${timeVal}`),
@@ -575,6 +589,7 @@ function render(){
     $('valPeak').innerHTML = '–';
     $('valSober').innerHTML = '–';
     $('statusLine').textContent = 'Trage oben mindestens ein Getränk ein, um eine Schätzung zu erhalten.';
+    $('hangoverReadout').style.display = 'none';
     updateChart([], null, null);
     return;
   }
@@ -603,6 +618,12 @@ function render(){
     statusMsg = `Geschätzt noch Restalkohol im Blut. Voraussichtlich nüchtern gegen ${fmtTime(soberTime)}.`;
   }
   $('statusLine').innerHTML = statusMsg;
+
+  const hangoverStart = new Date(peakTime.getTime() + 2*3600000);
+  const hangoverEnd = new Date(soberTime.getTime() + 24*3600000);
+  $('hangoverReadout').style.display = 'grid';
+  $('valHangoverStart').innerHTML = fmtTime(hangoverStart);
+  $('valHangoverEnd').innerHTML = fmtTime(hangoverEnd);
 
   updateChart(points, now, soberTime);
 }
