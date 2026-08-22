@@ -222,6 +222,13 @@
         Das ist, wie schnell deine Leber den Alkohol pro Stunde abbaut — unabhängig vom Essen. Bei den meisten Menschen sinkt der Promillewert um ca. 0,15 ‰ pro Stunde; je nach Person (Stoffwechsel, Übung, Geschlecht) kann das etwas schneller oder langsamer sein.
       </div>
     </div>
+    <div class="field" style="margin-top:10px;">
+      <label>Hangover-Rechner auch unter 1,0 ‰ anzeigen (ab 1,0 ‰ erscheint er ohnehin automatisch)</label>
+      <div class="toggle-group" id="hangoverToggle">
+        <button type="button" class="toggle-btn" data-key="on">An</button>
+        <button type="button" class="toggle-btn active" data-key="off">Aus</button>
+      </div>
+    </div>
   </div>
 
   <div class="panel">
@@ -275,6 +282,7 @@
         <tr class="empty-row"><td colspan="4">Noch keine Getränke erfasst.</td></tr>
       </tbody>
     </table>
+    <button class="btn-ghost" id="clearAll" style="width:100%; margin-top:12px; color:var(--red); border-color:var(--line);">Alle Einträge löschen</button>
   </div>
 
   <div class="panel">
@@ -332,6 +340,7 @@ const MEAL_SETTINGS = {
 let drinks = []; // {id, time: Date, vol, abv, label}
 let weightByType = { male: 80, female: 60 };
 let mealKey = 'meal';
+let hangoverEnabled = false;
 let chart;
 
 const $ = (id) => document.getElementById(id);
@@ -345,6 +354,7 @@ function saveState(){
       sexKey: currentSexKey(),
       weightByType: weightByType,
       mealKey: mealKey,
+      hangoverEnabled: hangoverEnabled,
       beta: $('beta').value,
       drinks: drinks.map(d => ({ id: d.id, time: d.time.toISOString(), vol: d.vol, abv: d.abv, label: d.label }))
     };
@@ -370,6 +380,7 @@ function loadState(){
     if(state.sexKey){ setSex(state.sexKey, false); }
     else { setSex(currentSexKey(), false); }
     setMeal(state.mealKey || 'meal', false);
+    setHangoverToggle(state.hangoverEnabled === true ? 'on' : 'off', false);
     if(Array.isArray(state.drinks)){
       drinks = state.drinks.map(d => ({ ...d, time: new Date(d.time) }));
       drinks.sort((a,b) => a.time - b.time);
@@ -405,6 +416,18 @@ function setMeal(key, doSave){
 
 document.querySelectorAll('#mealToggle .toggle-btn').forEach(btn => {
   btn.addEventListener('click', () => setMeal(btn.dataset.key));
+});
+
+function setHangoverToggle(key, doSave){
+  hangoverEnabled = key === 'on';
+  document.querySelectorAll('#hangoverToggle .toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.key === key);
+  });
+  if(doSave !== false){ render(); saveState(); }
+}
+
+document.querySelectorAll('#hangoverToggle .toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => setHangoverToggle(btn.dataset.key));
 });
 
 $('preset').addEventListener('change', (e) => {
@@ -516,6 +539,16 @@ function removeDrink(id){
   saveState();
 }
 
+$('clearAll').addEventListener('click', () => {
+  if(drinks.length === 0) return;
+  if(confirm('Alle eingetragenen Getränke wirklich löschen?')){
+    drinks = [];
+    renderTable();
+    render();
+    saveState();
+  }
+});
+
 function simulateCurve(r, m, beta){
   const { absorptionMinutes, peakFactor } = MEAL_SETTINGS[mealKey] || MEAL_SETTINGS.empty;
   const stepMin = 5;
@@ -619,11 +652,16 @@ function render(){
   }
   $('statusLine').innerHTML = statusMsg;
 
-  const hangoverStart = new Date(peakTime.getTime() + 2*3600000);
-  const hangoverEnd = new Date(soberTime.getTime() + 24*3600000);
-  $('hangoverReadout').style.display = 'grid';
-  $('valHangoverStart').innerHTML = fmtTime(hangoverStart);
-  $('valHangoverEnd').innerHTML = fmtTime(hangoverEnd);
+  const HANGOVER_THRESHOLD = 1.0;
+  if(peakVal >= HANGOVER_THRESHOLD || hangoverEnabled){
+    const hangoverStart = new Date(peakTime.getTime() + 2*3600000);
+    const hangoverEnd = new Date(soberTime.getTime() + 24*3600000);
+    $('hangoverReadout').style.display = 'grid';
+    $('valHangoverStart').innerHTML = fmtTime(hangoverStart);
+    $('valHangoverEnd').innerHTML = fmtTime(hangoverEnd);
+  } else {
+    $('hangoverReadout').style.display = 'none';
+  }
 
   updateChart(points, now, soberTime);
 }
